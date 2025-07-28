@@ -1,6 +1,11 @@
 variable "function_name" {}
+
 variable "zip_file" {}
-variable "dynamodb_table_arn" {}
+
+variable "dynamodb_table_arn" {
+  description = "ARN of the DynamoDB table"
+  type        = string
+}
 
 environment {
   variables = {
