@@ -1,5 +1,12 @@
 variable "function_name" {}
 variable "zip_file" {}
+variable "dynamodb_table_arn" {}
+
+environment {
+  variables = {
+    DYNAMODB_TABLE = var.dynamodb_table_name
+  }
+}
 
 resource "aws_iam_role" "lambda_role" {
   name = "${var.function_name}-role"
@@ -27,6 +34,24 @@ resource "aws_lambda_function" "this" {
   filename         = var.zip_file
   source_code_hash = filebase64sha256(var.zip_file)
 }
+
+resource "aws_iam_role_policy" "dynamodb_access" {
+  name = "LambdaDynamoDBAccess"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan"],
+        Effect   = "Allow",
+        Resource = var.dynamodb_table_arn
+      }
+    ]
+  })
+}
+
+
 
 output "lambda_arn" {
   value = aws_lambda_function.this.arn
